@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jadwal Sholat & Jam Digital</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #e0e5ec;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      transition: background 0.3s ease;
+      -webkit-tap-highlight-color: transparent; /* Hapus highlight biru */
+  outline: none; /* Hapus border focus */
+  user-select: none; /* Cegah seleksi teks saat diklik cepat */
+    }
+    .dark-mode {
+      background: #121212;
+      color: #ffffff;
+    }
+    .container {
+      text-align: center;
+      width: 100%;
+      max-width: 600px;
+      padding: 20px;
+    }
+    .section {
+      background: #e0e5ec;
+      border-radius: 20px;
+      box-shadow: 9px 9px 16px #a3b1c6, -9px -9px 16px white;
+      margin: 20px 0;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+    .dark-mode .section {
+      background: #1e1e1e;
+      box-shadow: 9px 9px 16px #141414, -9px -9px 16px #2a2a2a;
+      color: white;
+    }
+    .section h2 {
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+    #time {
+      font-size: 4em;
+      font-weight: bold;
+    }
+    table {
+      width: 100%;
+      margin-top: 10px;
+    }
+    table th, table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+      transition: background 0.3s ease;
+    }
+    .dark-mode table th, .dark-mode table td {
+      border-color: #444;
+    }
+    .highlight {
+      background-color: #ffc107 !important;
+      color: #000;
+      animation: pulse 1s infinite alternate;
+    }
+    @keyframes pulse {
+      from { background-color: #ffc107; }
+      to { background-color: #ffeb3b; }
+    }
+    .dark-mode .highlight {
+      background-color: #ff9800 !important;
+      color: #fff;
+    }
+    .switch {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #2196F3;
+    }
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    #api-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-left: 10px;
+    }
+    #countdown {
+      font-weight: 600;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <label class="switch">
+    <input type="checkbox" id="darkToggle">
+    <span class="slider"></span>
+  </label>
+
+  <div class="container">
+    <div class="section">
+      <h2><i class="bi bi-clock"></i> Jam Digital
+        <button id="toggleFormat" class="btn btn-sm btn-outline-secondary">12/24</button>
+      </h2>
+      <div id="time"></div>
+      <div id="date"></div>
+      <div id="countdown">Memuat waktu sholat...</div>
+    </div>
+
+    <div class="section">
+      <h2><i class="bi bi-sunrise"></i> Waktu Imsak</h2>
+      <p id="imsak-time">Memuat...</p>
+      <small>Lokasi: <span id="lokasi">-</span></small>
+      <span id="api-indicator"></span>
+      <button id="selectLocationBtn" class="btn btn-outline-primary mt-3">Pilih Lokasi Manual</button>
+      <a href="bulan.html" class="btn btn-outline-primary mt-3">Jadwal bulan ini</a>
+    </div>
+
+    <div class="section">
+      <h2><i class="bi bi-mosque"></i> Jadwal Sholat</h2>
+      <table>
+        <tbody>
+          <tr><td>Subuh</td><td id="subuh">-</td></tr>
+          <tr><td>Dzuhur</td><td id="dzuhur">-</td></tr>
+          <tr><td>Ashar</td><td id="ashar">-</td></tr>
+          <tr><td>Maghrib</td><td id="maghrib">-</td></tr>
+          <tr><td>Isya</td><td id="isya">-</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+ <!-- Tombol kembali ke lokasi.html -->
+
+  <audio id="azan-subuh" src="azan-subuh.mp3"></audio>
+  <audio id="azan-lainnya" src="azan-lainnya.mp3"></audio>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.33/moment-timezone-with-data.min.js"></script>
+  <script>
+    let format24 = true;
+    const toggleFormat = document.getElementById('toggleFormat');
+    toggleFormat.onclick = () => {
+      format24 = !format24;
+    };
+
+    document.getElementById('darkToggle').addEventListener('change', (e) => {
+      document.body.classList.toggle('dark-mode', e.target.checked);
+    });
+
+    document.getElementById('selectLocationBtn').addEventListener('click', () => {
+      window.location.href = 'lokasi.html';
+    });
+
+    function updateClock() {
+      const now = moment().tz('Asia/Jakarta');
+      document.getElementById('time').textContent = format24 ? now.format('HH:mm:ss') : now.format('hh:mm:ss A');
+      document.getElementById('date').textContent = now.format('dddd, D MMMM YYYY');
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    let jadwal = {};
+    const urutan = ['imsak','subuh','dzuhur','ashar','maghrib','isya'];
+    
+  let kotaId = localStorage.getItem('kotaId');
+  if (!kotaId) kotaId = 1409; // fallback jika belum dipilih
+  const today = moment().tz('Asia/Jakarta').format('YYYY/MM/DD');
+  const url = `https://api.myquran.com/v2/sholat/jadwal/${kotaId}/${today}`;
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          document.getElementById('api-indicator').style.background = 'green';
+          jadwal = data.data.jadwal;
+          document.getElementById('lokasi').textContent = data.data.lokasi;
+          document.getElementById('imsak-time').textContent = jadwal.imsak;
+          ['subuh','dzuhur','ashar','maghrib','isya'].forEach(sholat => {
+            document.getElementById(sholat).textContent = jadwal[sholat];
+             console.log(data);
+          });
+          setInterval(updateCountdown, 1000);
+        } else {
+          document.getElementById('api-indicator').style.background = 'red';
+        }
+      })
+      .catch(() => {
+        document.getElementById('api-indicator').style.background = 'red';
+      });
+
+    function updateCountdown() {
+      const now = moment().tz('Asia/Jakarta');
+      let nextName = null;
+      let nextTime = null;
+
+      for (let i = 0; i < urutan.length; i++) {
+        const name = urutan[i];
+        const waktu = moment.tz(`${moment().format('YYYY-MM-DD')} ${jadwal[name]}`, 'Asia/Jakarta');
+        if (now.isBefore(waktu)) {
+          nextName = name;
+          nextTime = waktu;
+          break;
+        }
+      }
+
+      if (!nextTime) {
+        nextName = urutan[0];
+        nextTime = moment.tz(`${moment().add(1, 'day').format('YYYY-MM-DD')} ${jadwal[nextName]}`, 'Asia/Jakarta');
+      }
+
+      const duration = moment.duration(nextTime.diff(now));
+      const jam = String(duration.hours()).padStart(2, '0');
+      const menit = String(duration.minutes()).padStart(2, '0');
+      const detik = String(duration.seconds()).padStart(2, '0');
+      document.getElementById('countdown').textContent = `Menuju ${nextName.toUpperCase()}: ${jam}:${menit}:${detik}`;
+
+      // Highlight baris dan kolom waktu
+      document.querySelectorAll('tbody tr').forEach(row => row.querySelectorAll('td')[1].classList.remove('highlight'));
+      const nextCell = document.getElementById(nextName);
+      if (nextCell) nextCell.classList.add('highlight');
+
+      if (jam === '00' && menit === '00' && detik === '00') {
+        if (nextName === 'subuh') {
+          document.getElementById('azan-subuh').play();
+        } else {
+          document.getElementById('azan-lainnya').play();
+        }
+      }
+    }
+
+    window.addEventListener('load', () => {
+      const selectedLocation = localStorage.getItem('selectedLocation');
+      if (selectedLocation) {
+        document.getElementById('lokasi').textContent = selectedLocation;
+      }
+    });
+  </script>
+</body>
+</html>

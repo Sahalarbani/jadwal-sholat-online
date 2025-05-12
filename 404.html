@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 - Halaman Tidak Ditemukan</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #e0e0e0;
+      color: #333;
+      margin: 0;
+      padding: 50px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      background: #e0e0e0;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 9px 9px 16px #bebebe, -9px -9px 16px #ffffff;
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 100px;
+      margin: 0;
+      color: #e74c3c;
+      text-shadow: 1px 1px 2px #999;
+    }
+
+    p {
+      font-size: 20px;
+      margin: 20px 0 30px;
+    }
+
+    a {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #e0e0e0;
+      color: #007BFF;
+      border-radius: 10px;
+      font-weight: bold;
+      text-decoration: none;
+      box-shadow: 4px 4px 8px #bebebe, -4px -4px 8px #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    a:hover {
+      background: #d4d4d4;
+      text-decoration: underline;
+    }
+
+    .countdown {
+      font-size: 16px;
+      color: #555;
+      margin-top: 15px;
+      animation: fadein 1s ease-in-out;
+    }
+
+    @keyframes fadein {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+  <script>
+    let seconds = 5;
+    const countdown = () => {
+      const el = document.getElementById('count');
+      if (seconds > 0) {
+        el.textContent = seconds;
+        seconds--;
+        setTimeout(countdown, 1000);
+      } else {
+        window.location.href = "index.html";
+      }
+    };
+    window.onload = countdown;
+  </script>
+</head>
+<body>
+  <div class="card">
+    <h1>404</h1>
+    <p>Oops! Halaman yang Anda cari tidak ditemukan.</p>
+    <a href="index.html">Kembali ke Halaman Utama</a>
+    <p class="countdown">Anda akan diarahkan otomatis dalam <span id="count">5</span> detik.</p>
+  </div>
+</body>
+</html>
